@@ -1,10 +1,12 @@
 package com.webscraper.app;
 
+import com.webscraper.app.dto.ArticleContent;
+import com.webscraper.app.dto.DetailedArticle;
+import com.webscraper.app.dto.ImageResult;
+import com.webscraper.app.dto.LinkItem;
+import com.webscraper.app.service.SentimentAnalysis;
+import com.webscraper.app.service.WebScraperService;
 import org.springframework.boot.CommandLineRunner;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
@@ -13,25 +15,34 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.IOException;
-import java.net.URI;
 import java.net.URL;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @org.springframework.stereotype.Component
 class WebScraperGUI implements CommandLineRunner {
 
     private JFrame frame;
+    private JTabbedPane tabbedPane;
+
+    // Tab 1: Link Scraper
     private JTextField urlField;
     private JList<LinkItem> linkList;
     private DefaultListModel<LinkItem> listModel;
     private JTextArea contentArea;
     private JScrollPane imagePanel;
     private JPanel imagesContainer;
+
+    // Tab 2: Article Analyzer
+    private JTextField articleUrlField;
+    private JLabel headlineLabel;
+    private JLabel authorLabel;
+    private JLabel dateLabel;
+    private JLabel sentimentLabel;
+    private JTextArea articleContentArea;
+    private JPanel articleImagesContainer;
+    private JScrollPane articleImagePanel;
+
     private WebScraperService scraperService;
 
     public WebScraperGUI() {
@@ -40,7 +51,7 @@ class WebScraperGUI implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        SwingUtilities.invokeLater(() -> createAndShowGUI());
+        SwingUtilities.invokeLater(this::createAndShowGUI);
     }
 
     private void createAndShowGUI() {
@@ -49,11 +60,35 @@ class WebScraperGUI implements CommandLineRunner {
         frame.setSize(1200, 800);
         frame.setLayout(new BorderLayout());
 
+        // Create tabbed pane
+        tabbedPane = new JTabbedPane();
+
+        // Tab 1: Link Scraper
+        JPanel linkScraperPanel = createLinkScraperPanel();
+        tabbedPane.addTab("Website Link Scraper", linkScraperPanel);
+
+        // Tab 2: Article Analyzer
+        JPanel articleAnalyzerPanel = createArticleAnalyzerPanel();
+        tabbedPane.addTab("Article Analyzer", articleAnalyzerPanel);
+
+        frame.add(tabbedPane, BorderLayout.CENTER);
+
+        // Status bar
+        JLabel statusBar = new JLabel("Tab 1: Scrape links from news websites | Tab 2: Analyze individual articles with sentiment analysis");
+        frame.add(statusBar, BorderLayout.SOUTH);
+
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
+    }
+
+    private JPanel createLinkScraperPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+
         // Top panel for URL input
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setBorder(BorderFactory.createTitledBorder("Enter Website URL"));
 
-        urlField = new JTextField("https://www.thehindu.com/");
+        urlField = new JTextField("https://www.bbc.com/");
         JButton scrapeButton = new JButton("Get Links");
 
         topPanel.add(urlField, BorderLayout.CENTER);
@@ -67,7 +102,7 @@ class WebScraperGUI implements CommandLineRunner {
 
         JScrollPane linkScrollPane = new JScrollPane(linkList);
         linkScrollPane.setPreferredSize(new Dimension(400, 600));
-        linkScrollPane.setBorder(BorderFactory.createTitledBorder("Available Links"));
+        linkScrollPane.setBorder(BorderFactory.createTitledBorder("Latest News Articles"));
 
         // Right panel for content display
         JPanel contentPanel = new JPanel(new BorderLayout());
@@ -103,16 +138,94 @@ class WebScraperGUI implements CommandLineRunner {
         scrapeButton.addActionListener(new ScrapeButtonListener());
         linkList.addListSelectionListener(new LinkSelectionListener());
 
-        // Add components to frame
-        frame.add(topPanel, BorderLayout.NORTH);
-        frame.add(mainSplitPane, BorderLayout.CENTER);
+        // Add components to panel
+        panel.add(topPanel, BorderLayout.NORTH);
+        panel.add(mainSplitPane, BorderLayout.CENTER);
 
-        // Status bar
-        JLabel statusBar = new JLabel("Ready to scrape...");
-        frame.add(statusBar, BorderLayout.SOUTH);
+        return panel;
+    }
 
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
+    private JPanel createArticleAnalyzerPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+
+        // Top panel for article URL input
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setBorder(BorderFactory.createTitledBorder("Enter Article URL for Detailed Analysis (works with most news sites)"));
+
+        articleUrlField = new JTextField("https://www.bbc.com/news/world-asia-india-12345678");
+        JButton analyzeButton = new JButton("Analyze Article");
+
+        topPanel.add(articleUrlField, BorderLayout.CENTER);
+        topPanel.add(analyzeButton, BorderLayout.EAST);
+
+        // Article details panel
+        JPanel detailsPanel = new JPanel();
+        detailsPanel.setLayout(new BoxLayout(detailsPanel, BoxLayout.Y_AXIS));
+        detailsPanel.setBorder(BorderFactory.createTitledBorder("Article Details"));
+
+        // Create labels for article metadata
+        headlineLabel = new JLabel("Headline: Not analyzed yet");
+        headlineLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
+
+        authorLabel = new JLabel("Author: Not analyzed yet");
+        authorLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+
+        dateLabel = new JLabel("Date: Not analyzed yet");
+        dateLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+
+        sentimentLabel = new JLabel("Sentiment: Not analyzed yet");
+        sentimentLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 12));
+
+        detailsPanel.add(headlineLabel);
+        detailsPanel.add(Box.createVerticalStrut(5));
+        detailsPanel.add(authorLabel);
+        detailsPanel.add(Box.createVerticalStrut(5));
+        detailsPanel.add(dateLabel);
+        detailsPanel.add(Box.createVerticalStrut(5));
+        detailsPanel.add(sentimentLabel);
+        detailsPanel.add(Box.createVerticalStrut(10));
+
+        // Add helper text
+        JLabel helpLabel = new JLabel("<html><small>Supported sites: BBC, CNN, Reuters, Guardian, etc.<br>" +
+                "Telegraph India may block automated requests.</small></html>");
+        helpLabel.setForeground(Color.GRAY);
+        detailsPanel.add(helpLabel);
+        detailsPanel.add(Box.createVerticalStrut(10));
+
+        // Article content area
+        articleContentArea = new JTextArea();
+        articleContentArea.setWrapStyleWord(true);
+        articleContentArea.setLineWrap(true);
+        articleContentArea.setEditable(false);
+        articleContentArea.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+
+        JScrollPane articleTextScrollPane = new JScrollPane(articleContentArea);
+        articleTextScrollPane.setPreferredSize(new Dimension(700, 400));
+        articleTextScrollPane.setBorder(BorderFactory.createTitledBorder("Article Content"));
+
+        // Article images panel
+        articleImagesContainer = new JPanel();
+        articleImagesContainer.setLayout(new BoxLayout(articleImagesContainer, BoxLayout.Y_AXIS));
+        articleImagePanel = new JScrollPane(articleImagesContainer);
+        articleImagePanel.setPreferredSize(new Dimension(700, 200));
+        articleImagePanel.setBorder(BorderFactory.createTitledBorder("Article Images"));
+
+        // Create main content panel
+        JSplitPane contentSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, articleTextScrollPane, articleImagePanel);
+        contentSplitPane.setDividerLocation(400);
+
+        // Left panel for details, right panel for content
+        JSplitPane mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, detailsPanel, contentSplitPane);
+        mainSplitPane.setDividerLocation(350);
+
+        // Event listener
+        analyzeButton.addActionListener(new AnalyzeArticleListener());
+
+        // Add components to panel
+        panel.add(topPanel, BorderLayout.NORTH);
+        panel.add(mainSplitPane, BorderLayout.CENTER);
+
+        return panel;
     }
 
     private class ScrapeButtonListener implements ActionListener {
@@ -139,7 +252,8 @@ class WebScraperGUI implements CommandLineRunner {
             imagesContainer.repaint();
 
             // Show loading message
-            contentArea.setText("Connecting to " + url + "...\nThis may take a few seconds.");
+            contentArea.setText("Connecting to " + url +
+                    "...\nSearching for latest news articles and stories...\nThis may take a few seconds.");
 
             // Disable button during operation
             JButton button = (JButton) e.getSource();
@@ -147,7 +261,7 @@ class WebScraperGUI implements CommandLineRunner {
             button.setText("Loading...");
 
             // Run scraping in background thread
-            currentWorker = new SwingWorker<List<LinkItem>, String>() {
+            currentWorker = new SwingWorker<>() {
                 @Override
                 protected List<LinkItem> doInBackground() throws Exception {
                     publish("Connecting to website...");
@@ -196,6 +310,212 @@ class WebScraperGUI implements CommandLineRunner {
         }
     }
 
+    private class AnalyzeArticleListener implements ActionListener {
+        private SwingWorker<DetailedArticle, String> currentWorker;
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String url = articleUrlField.getText().trim();
+            if (url.isEmpty()) {
+                JOptionPane.showMessageDialog(frame, "Please enter a valid article URL",
+                        "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // Cancel previous operation if running
+            if (currentWorker != null && !currentWorker.isDone()) {
+                currentWorker.cancel(true);
+            }
+
+            // Clear previous results
+            headlineLabel.setText("Headline: Analyzing...");
+            authorLabel.setText("Author: Analyzing...");
+            dateLabel.setText("Date: Analyzing...");
+            sentimentLabel.setText("Sentiment: Analyzing...");
+            articleContentArea.setText("");
+            articleImagesContainer.removeAll();
+            articleImagesContainer.revalidate();
+            articleImagesContainer.repaint();
+
+            // Disable button during operation
+            JButton button = (JButton) e.getSource();
+            button.setEnabled(false);
+            button.setText("Analyzing...");
+
+            // Run analysis in background thread
+            currentWorker = new SwingWorker<DetailedArticle, String>() {
+                @Override
+                protected DetailedArticle doInBackground() throws Exception {
+                    publish("Connecting to article...");
+                    DetailedArticle article = scraperService.extractDetailedArticle(url);
+                    publish("Analyzing sentiment...");
+                    return article;
+                }
+
+                @Override
+                protected void process(List<String> chunks) {
+                    for (String message : chunks) {
+                        articleContentArea.setText(message);
+                    }
+                }
+
+                @Override
+                protected void done() {
+                    // Re-enable button
+                    button.setEnabled(true);
+                    button.setText("Analyze Article");
+
+                    try {
+                        if (isCancelled()) {
+                            articleContentArea.setText("Analysis cancelled.");
+                            return;
+                        }
+
+                        DetailedArticle article = get();
+                        displayDetailedArticle(article);
+
+                    } catch (Exception ex) {
+                        String errorMsg = "Error analyzing article: " + ex.getMessage();
+                        articleContentArea.setText(errorMsg);
+                        headlineLabel.setText("Headline: Analysis failed");
+                        authorLabel.setText("Author: Analysis failed");
+                        dateLabel.setText("Date: Analysis failed");
+                        sentimentLabel.setText("Sentiment: Analysis failed");
+                        System.err.println("Article analysis error: " + ex.getMessage());
+                        ex.printStackTrace();
+                    }
+                }
+            };
+            currentWorker.execute();
+        }
+    }
+
+
+    private void displayDetailedArticle(DetailedArticle article) {
+        // Display article metadata
+        headlineLabel.setText("Headline: " + (article.getHeadline().length() > 80 ?
+                article.getHeadline().substring(0, 77) + "..." : article.getHeadline()));
+        headlineLabel.setToolTipText(article.getHeadline()); // Full headline on hover
+
+        authorLabel.setText("Author: " + article.getAuthor());
+        dateLabel.setText("Date: " + article.getPublishDate());
+
+        // Display sentiment with color coding
+        SentimentAnalysis sentiment = article.getSentiment();
+        String sentimentText = "Sentiment: " + sentiment.getLabel() + " (Score: " +
+                String.format("%.2f", sentiment.getScore()) + ")";
+        sentimentLabel.setText(sentimentText);
+
+        // Color code sentiment
+        if (sentiment.getLabel().equals("Positive")) {
+            sentimentLabel.setForeground(Color.GREEN.darker());
+        } else if (sentiment.getLabel().equals("Negative")) {
+            sentimentLabel.setForeground(Color.RED.darker());
+        } else {
+            sentimentLabel.setForeground(Color.BLUE);
+        }
+
+        // Display article content
+        StringBuilder contentBuilder = new StringBuilder();
+        contentBuilder.append("=== ARTICLE ANALYSIS ===\n\n");
+        contentBuilder.append("HEADLINE: ").append(article.getHeadline()).append("\n\n");
+        contentBuilder.append("AUTHOR: ").append(article.getAuthor()).append("\n");
+        contentBuilder.append("PUBLISHED: ").append(article.getPublishDate()).append("\n");
+        contentBuilder.append("SENTIMENT: ").append(sentiment.getLabel())
+                .append(" (").append(String.format("%.2f", sentiment.getScore())).append(")\n");
+        contentBuilder.append("WORD COUNT: ").append(article.getWordCount()).append(" words\n\n");
+        contentBuilder.append("=== CONTENT ===\n\n");
+        contentBuilder.append(article.getContent());
+
+        if (!article.getSentiment().getKeywords().isEmpty()) {
+            contentBuilder.append("\n\n=== SENTIMENT KEYWORDS ===\n");
+            contentBuilder.append("Positive: ").append(String.join(", ", sentiment.getPositiveWords())).append("\n");
+            contentBuilder.append("Negative: ").append(String.join(", ", sentiment.getNegativeWords())).append("\n");
+        }
+
+        articleContentArea.setText(contentBuilder.toString());
+        articleContentArea.setCaretPosition(0);
+
+        // Display images
+        displayArticleImages(article.getImageUrls());
+    }
+
+    private void displayArticleImages(List<String> imageUrls) {
+        articleImagesContainer.removeAll();
+
+        if (imageUrls.isEmpty()) {
+            JLabel noImagesLabel = new JLabel("No images found in this article.");
+            noImagesLabel.setForeground(Color.GRAY);
+            articleImagesContainer.add(noImagesLabel);
+        } else {
+            JLabel loadingLabel = new JLabel("Loading " + imageUrls.size() + " images from article...");
+            loadingLabel.setForeground(Color.BLUE);
+            articleImagesContainer.add(loadingLabel);
+
+            // Load images in background
+            SwingWorker<Void, ImageResult> imageWorker = new SwingWorker<Void, ImageResult>() {
+                @Override
+                protected Void doInBackground() throws Exception {
+                    for (String imageUrl : imageUrls) {
+                        if (isCancelled()) break;
+
+                        try {
+                            ImageIcon icon = loadImageIcon(imageUrl);
+                            if (icon != null) {
+                                publish(new ImageResult(icon, imageUrl, true));
+                            } else {
+                                publish(new ImageResult(null, imageUrl, false));
+                            }
+                        } catch (Exception e) {
+                            publish(new ImageResult(null, imageUrl, false));
+                        }
+
+                        Thread.sleep(300); // Small delay between images
+                    }
+                    return null;
+                }
+
+                @Override
+                protected void process(List<ImageResult> chunks) {
+                    // Remove loading label on first image
+                    if (articleImagesContainer.getComponentCount() > 0 &&
+                            articleImagesContainer.getComponent(0) == loadingLabel) {
+                        articleImagesContainer.remove(loadingLabel);
+                    }
+
+                    for (ImageResult result : chunks) {
+                        if (result.isSuccess() && result.getIcon() != null) {
+                            JPanel imagePanel = new JPanel(new BorderLayout());
+                            imagePanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+
+                            JLabel imageLabel = new JLabel(result.getIcon());
+                            imagePanel.add(imageLabel, BorderLayout.CENTER);
+
+                            articleImagesContainer.add(imagePanel);
+                            articleImagesContainer.add(Box.createVerticalStrut(10));
+                        }
+                    }
+                    articleImagesContainer.revalidate();
+                    articleImagesContainer.repaint();
+                }
+
+                @Override
+                protected void done() {
+                    if (articleImagesContainer.getComponentCount() == 0) {
+                        JLabel noImagesLabel = new JLabel("Could not load any images from this article.");
+                        noImagesLabel.setForeground(Color.GRAY);
+                        articleImagesContainer.add(noImagesLabel);
+                    }
+                    articleImagesContainer.revalidate();
+                    articleImagesContainer.repaint();
+                }
+            };
+            imageWorker.execute();
+        }
+
+        articleImagesContainer.revalidate();
+        articleImagesContainer.repaint();
+    }
     private class LinkSelectionListener implements ListSelectionListener {
         private SwingWorker<ArticleContent, String> currentContentWorker;
 
@@ -450,543 +770,5 @@ class LinkCellRenderer extends DefaultListCellRenderer {
             setToolTipText(link.getUrl());
         }
         return this;
-    }
-}
-
-// Data classes
-class LinkItem {
-    private final String title;
-    private final String url;
-
-    public LinkItem(String title, String url) {
-        this.title = title;
-        this.url = url;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public String getUrl() {
-        return url;
-    }
-
-    @Override
-    public String toString() {
-        return title;
-    }
-}
-
-class ArticleContent {
-    private final String title;
-    private final String text;
-    private final List<String> imageUrls;
-
-    public ArticleContent(String title, String text, List<String> imageUrls) {
-        this.title = title;
-        this.text = text;
-        this.imageUrls = imageUrls;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public String getText() {
-        return text;
-    }
-
-    public List<String> getImageUrls() {
-        return imageUrls;
-    }
-}
-
-// Service class for web scraping
-class WebScraperService {
-
-    public List<LinkItem> extractLinks(String baseUrl) throws IOException {
-        List<LinkItem> links = new ArrayList<>();
-        Set<String> seenUrls = new HashSet<>();
-
-        try {
-            System.out.println("Connecting to: " + baseUrl);
-
-            Document doc = Jsoup.connect(baseUrl)
-                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-                    .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7")
-                    .header("Accept-Language", "en-US,en;q=0.9")
-                    .header("Accept-Encoding", "gzip, deflate, br")
-                    .header("Cache-Control", "no-cache")
-                    .header("Pragma", "no-cache")
-                    .header("Sec-Ch-Ua", "\"Not_A Brand\";v=\"8\", \"Chromium\";v=\"120\", \"Google Chrome\";v=\"120\"")
-                    .header("Sec-Ch-Ua-Mobile", "?0")
-                    .header("Sec-Ch-Ua-Platform", "\"Windows\"")
-                    .header("Sec-Fetch-Dest", "document")
-                    .header("Sec-Fetch-Mode", "navigate")
-                    .header("Sec-Fetch-Site", "none")
-                    .header("Sec-Fetch-User", "?1")
-                    .header("Upgrade-Insecure-Requests", "1")
-                    .referrer("https://www.google.com/")
-                    .timeout(8000) // Increased timeout for better success rate
-                    .followRedirects(true)
-                    .maxBodySize(1024 * 1024) // 1MB max
-                    .ignoreHttpErrors(true) // Don't throw exception on HTTP errors
-                    .get();
-
-            // Check if we got a successful response
-            int statusCode = doc.connection().response().statusCode();
-            if (statusCode == 403) {
-                throw new IOException("Access denied (403). The website is blocking automated requests. Try a different website or check if the URL is correct.");
-            } else if (statusCode == 404) {
-                throw new IOException("Page not found (404). Please check the URL and try again.");
-            } else if (statusCode == 500) {
-                throw new IOException("Server error (500). The website is experiencing issues. Please try again later.");
-            } else if (statusCode >= 400) {
-                throw new IOException("HTTP error " + statusCode + ". The website returned an error response.");
-            }
-
-            System.out.println("Successfully connected. Status: " + statusCode + ". Parsing links...");
-
-            // Debug: Print some HTML structure info
-            System.out.println("Page title: " + doc.title());
-            System.out.println("HTML body length: " + doc.body().html().length() + " characters");
-
-            // Get base URI for resolving relative URLs
-            String baseUri = doc.baseUri();
-            if (baseUri.isEmpty()) {
-                baseUri = baseUrl;
-            }
-
-            // Try multiple link selectors, prioritizing news content areas
-            Elements linkElements = new Elements();
-            String[] newsContentSelectors = {
-                    // Priority 1: Main news content areas
-                    "main a[href]", ".main-content a[href]", ".content a[href]",
-                    "article a[href]", ".article a[href]", ".story a[href]",
-                    ".news a[href]", ".headlines a[href]", ".latest a[href]",
-
-                    // Priority 2: News-specific sections
-                    ".story-card a", ".article-card a", ".news-item a",
-                    ".headline a", ".story-headline a", ".article-title a",
-                    ".post-title a", ".entry-title a",
-
-                    // Priority 3: Common news website structures
-                    "h1 a", "h2 a", "h3 a", ".title a",
-                    "[data-module='story'] a", "[data-component='headline'] a",
-
-                    // Priority 4: Fallback to all links
-                    "a[href]"
-            };
-
-            for (String selector : newsContentSelectors) {
-                linkElements = doc.select(selector);
-                System.out.println("Selector '" + selector + "' found " + linkElements.size() + " elements");
-                if (linkElements.size() > 5) { // Only use if we find a reasonable number
-                    System.out.println("Using selector: " + selector);
-                    break;
-                }
-            }
-
-            // If still no good results, try news-specific areas
-            if (linkElements.size() < 5) {
-                System.out.println("Trying news-specific area selectors...");
-                String[] newsAreaSelectors = {
-                        ".top-stories a", ".breaking-news a", ".latest-news a",
-                        ".featured a", ".trending a", ".popular a",
-                        ".homepage a", ".front-page a"
-                };
-
-                for (String selector : newsAreaSelectors) {
-                    Elements elements = doc.select(selector);
-                    if (elements.size() > 0) {
-                        linkElements.addAll(elements);
-                        System.out.println("Added " + elements.size() + " from " + selector);
-                    }
-                }
-            }
-
-            // Debug: Print first few elements found
-            if (!linkElements.isEmpty()) {
-                System.out.println("Sample of found elements:");
-                for (int i = 0; i < Math.min(3, linkElements.size()); i++) {
-                    Element el = linkElements.get(i);
-                    System.out.println("  " + i + ": " + el.tagName() + " - " + el.attr("href") + " - " + el.text().substring(0, Math.min(50, el.text().length())));
-                }
-            }
-
-            int validLinks = 0;
-            for (Element link : linkElements) {
-                String href = "";
-
-                // Try different ways to get the URL
-                if (link.hasAttr("href")) {
-                    href = link.attr("abs:href");
-                } else if (link.hasAttr("data-href")) {
-                    href = link.attr("data-href");
-                } else if (link.hasAttr("data-link")) {
-                    href = link.attr("data-link");
-                }
-
-                // Handle relative URLs manually if needed
-                if (!href.startsWith("http") && href.startsWith("/")) {
-                    href = baseUrl + href;
-                }
-
-                String text = link.text().trim();
-
-                // Filter valid links
-                if (!href.isEmpty() && !seenUrls.contains(href) && isValidLink(href, baseUrl)) {
-                    seenUrls.add(href);
-
-                    if (text.isEmpty()) {
-                        text = link.attr("title");
-                        if (text.isEmpty()) {
-                            text = link.attr("alt");
-                            if (text.isEmpty()) {
-                                String urlPart = href.substring(href.lastIndexOf('/') + 1);
-                                text = urlPart.isEmpty() ? ("Link " + (validLinks + 1)) : urlPart;
-                            }
-                        }
-                    }
-
-                    // Limit title length
-                    if (text.length() > 100) {
-                        text = text.substring(0, 97) + "...";
-                    }
-
-                    links.add(new LinkItem(text, href));
-                    validLinks++;
-
-                    // Limit number of links to focus on latest articles
-                    if (links.size() >= 25) { // Reduced from 50 to focus on recent content
-                        System.out.println("Limiting to first 25 latest article links");
-                        break;
-                    }
-                }
-            }
-
-            System.out.println("Extracted " + validLinks + " valid links");
-
-            if (links.isEmpty()) {
-                // Provide more detailed debugging info
-                String debugInfo = "Debug information:\n" +
-                        "• Page title: " + doc.title() + "\n" +
-                        "• HTML body size: " + doc.body().html().length() + " characters\n" +
-                        "• Total elements found: " + linkElements.size() + "\n" +
-                        "• Base URL: " + baseUrl + "\n" +
-                        "• Response status: " + statusCode;
-
-                System.out.println(debugInfo);
-
-                throw new IOException("No valid links found on this page.\n\n" + debugInfo + "\n\n" +
-                        "This could mean:\n" +
-                        "1. The website uses JavaScript to load content dynamically\n" +
-                        "2. The website structure has changed\n" +
-                        "3. The website is serving different content to automated requests\n\n" +
-                        "Working alternatives: BBC.com, CNN.com, Reuters.com, NBCNews.com");
-            }
-
-            return links;
-
-        } catch (IOException e) {
-            System.err.println("IOException while connecting to " + baseUrl + ": " + e.getMessage());
-
-            // Provide more specific error messages
-            if (e.getMessage().contains("403")) {
-                throw new IOException("Access Forbidden (403): The website '" + getDomainFromUrl(baseUrl) + "' is blocking automated requests.\n\n" +
-                        "Suggestions:\n" +
-                        "• Try websites like: bbc.com, cnn.com, reuters.com, theguardian.com\n" +
-                        "• Some news websites block scrapers to protect their content\n" +
-                        "• The Hindu works because it allows automated access");
-            } else if (e.getMessage().contains("timeout") || e.getMessage().contains("timed out")) {
-                throw new IOException("Connection timeout: The website is taking too long to respond.\n" +
-                        "Please check your internet connection and try again.");
-            } else {
-                throw new IOException("Failed to connect to '" + getDomainFromUrl(baseUrl) + "'.\n" +
-                        "Error: " + e.getMessage() + "\n\n" +
-                        "Please check:\n" +
-                        "• The URL is correct and accessible\n" +
-                        "• Your internet connection\n" +
-                        "• Try a different website like BBC.com which is known to work");
-            }
-        } catch (Exception e) {
-            System.err.println("Unexpected error: " + e.getMessage());
-            throw new IOException("Unexpected error occurred while accessing '" + getDomainFromUrl(baseUrl) + "': " + e.getMessage());
-        }
-    }
-
-    private String getDomainFromUrl(String url) {
-        try {
-            URI uri = URI.create(url);
-            return uri.getHost();
-        } catch (Exception e) {
-            return url;
-        }
-    }
-
-    private boolean isValidLink(String href, String baseUrl) {
-        try {
-            if (href == null || href.trim().isEmpty()) {
-                return false;
-            }
-
-            // Basic URL validation
-            if (!href.startsWith("http")) {
-                return false;
-            }
-
-            URI uri = URI.create(href);
-            URI baseUri = URI.create(baseUrl);
-
-            // Check if it's from the same domain or subdomain
-            String linkHost = uri.getHost();
-            String baseHost = baseUri.getHost();
-
-            if (linkHost == null || baseHost == null) {
-                return false;
-            }
-
-            // Allow same domain and subdomains
-            boolean sameDomain = linkHost.equals(baseHost) || linkHost.endsWith("." + baseHost);
-
-            // Filter out non-article links
-            String path = uri.getPath().toLowerCase();
-            String fullUrl = href.toLowerCase();
-
-            // Skip common non-article pages
-            String[] skipPatterns = {
-                    "/about", "/contact", "/privacy", "/terms", "/policy",
-                    "/subscribe", "/newsletter", "/advertise", "/jobs", "/careers",
-                    "/help", "/support", "/faq", "/sitemap", "/search",
-                    "/login", "/register", "/account", "/profile",
-                    "/tag/", "/tags/", "/category/", "/author/", "/page/",
-                    "/gallery", "/video", "/photos", "/images",
-                    "/rss", "/feed", "/xml", "/api/",
-                    "facebook.com", "twitter.com", "instagram.com", "youtube.com",
-                    "mailto:", "javascript:", "tel:"
-            };
-
-            for (String pattern : skipPatterns) {
-                if (fullUrl.contains(pattern)) {
-                    return false;
-                }
-            }
-
-            // Prefer URLs that look like news articles
-            String[] articlePatterns = {
-                    "/news/", "/article/", "/story/", "/post/", "/politics/",
-                    "/world/", "/business/", "/sports/", "/technology/", "/health/",
-                    "/entertainment/", "/science/", "/opinion/", "/analysis/",
-                    "/breaking", "/latest", "/today", "/live"
-            };
-
-            boolean looksLikeArticle = false;
-            for (String pattern : articlePatterns) {
-                if (fullUrl.contains(pattern)) {
-                    looksLikeArticle = true;
-                    break;
-                }
-            }
-
-            // Also check for date patterns in URL (common in news sites)
-            boolean hasDatePattern = path.matches(".*/(20\\d{2}|\\d{4})/(\\d{1,2}|\\d{2})/(\\d{1,2}|\\d{2})/.*") ||
-                    path.matches(".*/(20\\d{2})/(\\d{1,2})/.*");
-
-            return sameDomain &&
-                    !href.contains("#") && // Skip anchors
-                    !href.toLowerCase().matches(".*\\.(pdf|doc|docx|xls|xlsx|zip|rar|exe|jpg|jpeg|png|gif|mp4|mp3)$") && // Skip files
-                    href.length() < 500 && // Skip very long URLs
-                    (looksLikeArticle || hasDatePattern || path.length() > 10); // Prefer article-like URLs
-
-        } catch (Exception e) {
-            System.err.println("Error validating link " + href + ": " + e.getMessage());
-            return false;
-        }
-    }
-
-    public ArticleContent extractContent(String url) throws IOException {
-        try {
-            System.out.println("Extracting content from: " + url);
-
-            // Add a small delay to be more respectful to the server
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-
-            Document doc = Jsoup.connect(url)
-                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-                    .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8")
-                    .header("Accept-Language", "en-US,en;q=0.9")
-                    .header("Accept-Encoding", "gzip, deflate, br")
-                    .header("Cache-Control", "no-cache")
-                    .header("Sec-Fetch-Dest", "document")
-                    .header("Sec-Fetch-Mode", "navigate")
-                    .header("Sec-Fetch-Site", "same-origin")
-                    .referrer(url)
-                    .timeout(10000) // 10 seconds for content loading
-                    .followRedirects(true)
-                    .maxBodySize(2 * 1024 * 1024) // 2MB max for content pages
-                    .ignoreHttpErrors(true)
-                    .get();
-
-            // Check response status
-            int statusCode = doc.connection().response().statusCode();
-            if (statusCode >= 400) {
-                throw new IOException("Failed to load page content (HTTP " + statusCode + ")");
-            }
-
-            // Extract title
-            String title = doc.title();
-            if (title == null || title.trim().isEmpty()) {
-                title = "No Title Available";
-            }
-
-            // Extract text content with better selectors
-            StringBuilder textBuilder = new StringBuilder();
-
-            // Try multiple content selectors in order of preference
-            String[] contentSelectors = {
-                    "article", ".article", ".content", ".article-content",
-                    ".story-content", ".post-content", "main", ".main-content",
-                    "[role=main]", ".entry-content", ".post", ".story",
-                    ".news-content", ".article-body"
-            };
-
-            Elements contentElements = new Elements();
-            for (String selector : contentSelectors) {
-                contentElements = doc.select(selector);
-                if (!contentElements.isEmpty()) {
-                    System.out.println("Found content using selector: " + selector);
-                    break;
-                }
-            }
-
-            // Fallback to paragraphs if no main content found
-            if (contentElements.isEmpty()) {
-                contentElements = doc.select("p");
-                System.out.println("Using paragraph fallback, found " + contentElements.size() + " paragraphs");
-            }
-
-            for (Element element : contentElements) {
-                String text = element.text().trim();
-                if (!text.isEmpty() && text.length() > 20) { // Only meaningful paragraphs
-                    textBuilder.append(text).append("\n\n");
-                }
-            }
-
-            String content = textBuilder.toString().trim();
-            if (content.isEmpty()) {
-                content = "No readable content found on this page. This might be because:\n" +
-                        "• The page uses JavaScript to load content\n" +
-                        "• The content is protected or behind a paywall\n" +
-                        "• The page structure is not recognized by the scraper";
-            }
-
-            // Extract images with better filtering for news content
-            List<String> imageUrls = new ArrayList<>();
-
-            // Try to find images in content areas first
-            Elements contentImages = new Elements();
-            String[] imageSelectors = {
-                    "article img[src]", ".article img[src]", ".content img[src]",
-                    ".story img[src]", ".news-content img[src]",
-                    ".post-content img[src]", ".entry-content img[src]",
-                    "main img[src]", ".main-content img[src]",
-                    "img[src]" // fallback to all images
-            };
-
-            for (String selector : imageSelectors) {
-                contentImages = doc.select(selector);
-                System.out.println("Image selector '" + selector + "' found " + contentImages.size() + " images");
-                if (contentImages.size() > 0) {
-                    break;
-                }
-            }
-
-            for (Element img : contentImages) {
-                String src = img.attr("abs:src");
-                if (!src.isEmpty() && isValidImageUrl(src) && isNewsImage(img, src)) {
-                    imageUrls.add(src);
-                    System.out.println("Added image: " + src);
-
-                    // Limit number of images to prevent overload
-                    if (imageUrls.size() >= 3) { // Reduced to 3 for better performance
-                        break;
-                    }
-                }
-            }
-
-            System.out.println("Extracted content: " + content.length() + " characters, " + imageUrls.size() + " images");
-            return new ArticleContent(title, content, imageUrls);
-
-        } catch (IOException e) {
-            System.err.println("IOException while extracting content from " + url + ": " + e.getMessage());
-            throw new IOException("Failed to load page content: " + e.getMessage());
-        } catch (Exception e) {
-            System.err.println("Unexpected error extracting content: " + e.getMessage());
-            throw new IOException("Error processing page content: " + e.getMessage());
-        }
-    }
-
-    private boolean isValidImageUrl(String url) {
-        if (url == null || url.trim().isEmpty()) {
-            return false;
-        }
-
-        try {
-            URI uri = URI.create(url);
-            String lowerUrl = url.toLowerCase();
-
-            // Skip common non-content images
-            String[] skipPatterns = {
-                    "logo", "header", "footer", "nav", "menu", "icon", "avatar",
-                    "advertisement", "banner", "sidebar", "widget", "social",
-                    "tracking", "pixel", "analytics", "beacon", "1x1", "spacer"
-            };
-
-            for (String pattern : skipPatterns) {
-                if (lowerUrl.contains(pattern)) {
-                    return false;
-                }
-            }
-
-            return lowerUrl.matches(".*\\.(jpg|jpeg|png|gif|webp|svg).*") &&
-                    url.length() < 500 &&
-                    !lowerUrl.contains("data:") && // Skip data URLs
-                    !lowerUrl.contains("base64"); // Skip base64 images
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-    private boolean isNewsImage(Element img, String src) {
-        // Check image attributes and context for news relevance
-        String alt = img.attr("alt").toLowerCase();
-        String className = img.attr("class").toLowerCase();
-        String parentClass = img.parent() != null ? img.parent().attr("class").toLowerCase() : "";
-
-        // Skip obvious non-content images
-        String[] skipTerms = {
-                "logo", "advertisement", "banner", "social", "icon", "avatar",
-                "tracking", "pixel", "widget", "sidebar", "nav", "menu", "footer"
-        };
-
-        String combinedContext = alt + " " + className + " " + parentClass;
-        for (String term : skipTerms) {
-            if (combinedContext.contains(term)) {
-                return false;
-            }
-        }
-
-        // Prefer images with meaningful alt text or in content areas
-        return alt.length() > 10 ||
-                className.contains("content") ||
-                className.contains("article") ||
-                className.contains("story") ||
-                parentClass.contains("content") ||
-                parentClass.contains("article") ||
-                parentClass.contains("story");
     }
 }
