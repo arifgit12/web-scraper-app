@@ -4,6 +4,7 @@ import com.webscraper.app.dto.ArticleContent;
 import com.webscraper.app.dto.DetailedArticle;
 import com.webscraper.app.dto.ImageResult;
 import com.webscraper.app.dto.LinkItem;
+import com.webscraper.app.service.ExportService;
 import com.webscraper.app.service.SentimentAnalysis;
 import com.webscraper.app.service.WebScraperService;
 import org.springframework.boot.CommandLineRunner;
@@ -15,8 +16,10 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.net.URL;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.List;
 
 import static javax.swing.border.TitledBorder.LEFT;
@@ -72,9 +75,16 @@ class WebScraperGUI implements CommandLineRunner {
     private JScrollPane articleImagePanel;
 
     private WebScraperService scraperService;
+    private ExportService exportService;
+    
+    // Storage for current article and batch analysis
+    private DetailedArticle currentArticle;
+    private List<DetailedArticle> batchArticles;
 
     public WebScraperGUI() {
         this.scraperService = new WebScraperService();
+        this.exportService = new ExportService();
+        this.batchArticles = new ArrayList<>();
     }
 
     @Override
@@ -339,6 +349,93 @@ class WebScraperGUI implements CommandLineRunner {
         detailsPanel.add(sentimentLabel);
         detailsPanel.add(Box.createVerticalStrut(20));
 
+        // Add separator
+        JSeparator separator2 = new JSeparator();
+        separator2.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
+        detailsPanel.add(separator2);
+        detailsPanel.add(Box.createVerticalStrut(15));
+
+        // Export buttons
+        JLabel exportLabel = new JLabel("📤 Export");
+        exportLabel.setFont(FONT_LABEL);
+        exportLabel.setForeground(TEXT_PRIMARY);
+        detailsPanel.add(exportLabel);
+        detailsPanel.add(Box.createVerticalStrut(10));
+
+        JButton exportCSVButton = new JButton("💾 CSV");
+        exportCSVButton.setFont(FONT_SMALL);
+        exportCSVButton.setBackground(new Color(52, 152, 219));
+        exportCSVButton.setForeground(Color.WHITE);
+        exportCSVButton.setFocusPainted(false);
+        exportCSVButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        exportCSVButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        exportCSVButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        exportCSVButton.addActionListener(e -> exportCurrentArticleToCSV());
+
+        JButton exportPDFButton = new JButton("📄 PDF");
+        exportPDFButton.setFont(FONT_SMALL);
+        exportPDFButton.setBackground(new Color(231, 76, 60));
+        exportPDFButton.setForeground(Color.WHITE);
+        exportPDFButton.setFocusPainted(false);
+        exportPDFButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        exportPDFButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        exportPDFButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        exportPDFButton.addActionListener(e -> exportCurrentArticleToPDF());
+
+        detailsPanel.add(exportCSVButton);
+        detailsPanel.add(Box.createVerticalStrut(5));
+        detailsPanel.add(exportPDFButton);
+        detailsPanel.add(Box.createVerticalStrut(15));
+
+        // Batch analysis section
+        JSeparator separator3 = new JSeparator();
+        separator3.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
+        detailsPanel.add(separator3);
+        detailsPanel.add(Box.createVerticalStrut(15));
+
+        JLabel batchLabel = new JLabel("📊 Batch Analysis");
+        batchLabel.setFont(FONT_LABEL);
+        batchLabel.setForeground(TEXT_PRIMARY);
+        detailsPanel.add(batchLabel);
+        detailsPanel.add(Box.createVerticalStrut(10));
+
+        JButton addToBatchButton = new JButton("➕ Add to Batch");
+        addToBatchButton.setFont(FONT_SMALL);
+        addToBatchButton.setBackground(PRIMARY_GREEN);
+        addToBatchButton.setForeground(Color.WHITE);
+        addToBatchButton.setFocusPainted(false);
+        addToBatchButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        addToBatchButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        addToBatchButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        addToBatchButton.addActionListener(e -> addToBatch());
+
+        JButton exportBatchButton = new JButton("📦 Export Batch");
+        exportBatchButton.setFont(FONT_SMALL);
+        exportBatchButton.setBackground(new Color(155, 89, 182));
+        exportBatchButton.setForeground(Color.WHITE);
+        exportBatchButton.setFocusPainted(false);
+        exportBatchButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        exportBatchButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        exportBatchButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        exportBatchButton.addActionListener(e -> exportBatch());
+
+        JButton clearBatchButton = new JButton("🗑️ Clear Batch");
+        clearBatchButton.setFont(FONT_SMALL);
+        clearBatchButton.setBackground(TEXT_SECONDARY);
+        clearBatchButton.setForeground(Color.WHITE);
+        clearBatchButton.setFocusPainted(false);
+        clearBatchButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        clearBatchButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        clearBatchButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        clearBatchButton.addActionListener(e -> clearBatch());
+
+        detailsPanel.add(addToBatchButton);
+        detailsPanel.add(Box.createVerticalStrut(5));
+        detailsPanel.add(exportBatchButton);
+        detailsPanel.add(Box.createVerticalStrut(5));
+        detailsPanel.add(clearBatchButton);
+        detailsPanel.add(Box.createVerticalStrut(10));
+
         // Add helper text with modern styling
         JLabel helpLabel = new JLabel("<html><small style='color: #7f8c8d;'>" +
                 "✓ Supported: BBC, CNN, Reuters, Guardian<br>" +
@@ -576,6 +673,9 @@ class WebScraperGUI implements CommandLineRunner {
 
 
     private void displayDetailedArticle(DetailedArticle article) {
+        // Store the current article for export functionality
+        this.currentArticle = article;
+        
         // Display article metadata with better formatting
         String headlineText = article.getHeadline();
         if (headlineText.length() > MAX_HEADLINE_LENGTH) {
@@ -998,6 +1098,181 @@ class WebScraperGUI implements CommandLineRunner {
             System.err.println("Error loading image: " + imageUrl + " - " + e.getMessage());
         }
         return null;
+    }
+
+    // Export and Batch Analysis Methods
+    
+    private void exportCurrentArticleToCSV() {
+        if (currentArticle == null) {
+            JOptionPane.showMessageDialog(frame, 
+                "No article analyzed yet. Please analyze an article first.",
+                "Export Error", 
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Export Article to CSV");
+        fileChooser.setSelectedFile(new File("article_analysis.csv"));
+        
+        int userSelection = fileChooser.showSaveDialog(frame);
+        if (userSelection == JFileChooser.APPROVE_OPTION) {
+            File fileToSave = fileChooser.getSelectedFile();
+            try {
+                exportService.exportToCSV(currentArticle, fileToSave.getAbsolutePath());
+                JOptionPane.showMessageDialog(frame,
+                    "Article exported successfully to:\n" + fileToSave.getAbsolutePath(),
+                    "Export Successful",
+                    JOptionPane.INFORMATION_MESSAGE);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(frame,
+                    "Error exporting article:\n" + ex.getMessage(),
+                    "Export Error",
+                    JOptionPane.ERROR_MESSAGE);
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    private void exportCurrentArticleToPDF() {
+        if (currentArticle == null) {
+            JOptionPane.showMessageDialog(frame,
+                "No article analyzed yet. Please analyze an article first.",
+                "Export Error",
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Export Article to PDF");
+        fileChooser.setSelectedFile(new File("article_analysis.pdf"));
+        
+        int userSelection = fileChooser.showSaveDialog(frame);
+        if (userSelection == JFileChooser.APPROVE_OPTION) {
+            File fileToSave = fileChooser.getSelectedFile();
+            try {
+                exportService.exportToPDF(currentArticle, fileToSave.getAbsolutePath());
+                JOptionPane.showMessageDialog(frame,
+                    "Article exported successfully to:\n" + fileToSave.getAbsolutePath(),
+                    "Export Successful",
+                    JOptionPane.INFORMATION_MESSAGE);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(frame,
+                    "Error exporting article:\n" + ex.getMessage(),
+                    "Export Error",
+                    JOptionPane.ERROR_MESSAGE);
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    private void addToBatch() {
+        if (currentArticle == null) {
+            JOptionPane.showMessageDialog(frame,
+                "No article analyzed yet. Please analyze an article first.",
+                "Batch Error",
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        batchArticles.add(currentArticle);
+        JOptionPane.showMessageDialog(frame,
+            "Article added to batch!\n\nTotal articles in batch: " + batchArticles.size(),
+            "Added to Batch",
+            JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private void exportBatch() {
+        if (batchArticles.isEmpty()) {
+            JOptionPane.showMessageDialog(frame,
+                "Batch is empty. Add articles to batch first.",
+                "Batch Export Error",
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        // Ask user to choose format
+        String[] options = {"CSV", "PDF", "Cancel"};
+        int choice = JOptionPane.showOptionDialog(frame,
+            "Export " + batchArticles.size() + " articles to which format?",
+            "Export Batch",
+            JOptionPane.YES_NO_CANCEL_OPTION,
+            JOptionPane.QUESTION_MESSAGE,
+            null,
+            options,
+            options[0]);
+
+        if (choice == 2 || choice == JOptionPane.CLOSED_OPTION) {
+            return; // User cancelled
+        }
+
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Export Batch Analysis");
+        
+        if (choice == 0) { // CSV
+            fileChooser.setSelectedFile(new File("batch_analysis.csv"));
+            int userSelection = fileChooser.showSaveDialog(frame);
+            if (userSelection == JFileChooser.APPROVE_OPTION) {
+                File fileToSave = fileChooser.getSelectedFile();
+                try {
+                    exportService.exportBatchToCSV(batchArticles, fileToSave.getAbsolutePath());
+                    JOptionPane.showMessageDialog(frame,
+                        batchArticles.size() + " articles exported successfully to:\n" + fileToSave.getAbsolutePath(),
+                        "Batch Export Successful",
+                        JOptionPane.INFORMATION_MESSAGE);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(frame,
+                        "Error exporting batch:\n" + ex.getMessage(),
+                        "Export Error",
+                        JOptionPane.ERROR_MESSAGE);
+                    ex.printStackTrace();
+                }
+            }
+        } else { // PDF
+            fileChooser.setSelectedFile(new File("batch_analysis.pdf"));
+            int userSelection = fileChooser.showSaveDialog(frame);
+            if (userSelection == JFileChooser.APPROVE_OPTION) {
+                File fileToSave = fileChooser.getSelectedFile();
+                try {
+                    exportService.exportBatchToPDF(batchArticles, fileToSave.getAbsolutePath());
+                    JOptionPane.showMessageDialog(frame,
+                        batchArticles.size() + " articles exported successfully to:\n" + fileToSave.getAbsolutePath(),
+                        "Batch Export Successful",
+                        JOptionPane.INFORMATION_MESSAGE);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(frame,
+                        "Error exporting batch:\n" + ex.getMessage(),
+                        "Export Error",
+                        JOptionPane.ERROR_MESSAGE);
+                    ex.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private void clearBatch() {
+        if (batchArticles.isEmpty()) {
+            JOptionPane.showMessageDialog(frame,
+                "Batch is already empty.",
+                "Clear Batch",
+                JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        int confirm = JOptionPane.showConfirmDialog(frame,
+            "Clear all " + batchArticles.size() + " articles from batch?",
+            "Confirm Clear Batch",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE);
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            int count = batchArticles.size();
+            batchArticles.clear();
+            JOptionPane.showMessageDialog(frame,
+                "Batch cleared. " + count + " articles removed.",
+                "Batch Cleared",
+                JOptionPane.INFORMATION_MESSAGE);
+        }
     }
 }
 

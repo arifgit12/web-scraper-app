@@ -20,6 +20,13 @@ A powerful Spring Boot application with professional Swing GUI for web scraping 
 - **Keyword Analysis**: Shows positive/negative sentiment keywords
 - **Professional UI**: Modern green color scheme with structured report format
 
+### 📤 Export & Batch Features (NEW!)
+- **CSV Export**: Export individual article analysis to CSV format
+- **PDF Export**: Generate professional PDF reports with complete analysis
+- **Batch Analysis**: Analyze multiple articles and store them in memory
+- **Batch Export**: Export all analyzed articles at once to CSV or PDF
+- **Flexible Workflow**: Add articles to batch, export when ready, or clear batch
+
 ## 🎨 User Interface
 
 The application features a **professional, industry-standard UI** with:
@@ -38,6 +45,8 @@ The application features a **professional, industry-standard UI** with:
 - **Java Swing** - Desktop GUI with custom styling
 - **JSoup 1.18.1** - HTML parsing and web scraping
 - **Apache HTTP Client** - HTTP connections
+- **Apache Commons CSV 1.10.0** - CSV export functionality
+- **iText7 7.2.5** - PDF generation and export
 - **Java 17** - Runtime environment
 
 ## 📋 Prerequisites
@@ -101,6 +110,30 @@ Run the `WebScraperApplication.java` main class
    - Full article content
 5. View extracted images below the content
 6. All processing happens in the background for smooth experience
+
+### Export & Batch Analysis (NEW! 📤)
+
+**Exporting Single Articles:**
+1. After analyzing an article, use the export buttons in the left panel
+2. Click **"💾 CSV"** to export to CSV format
+3. Click **"📄 PDF"** to export to PDF format
+4. Choose the save location in the file dialog
+5. Get confirmation when export is successful
+
+**Batch Analysis Workflow:**
+1. Analyze an article as usual
+2. Click **"➕ Add to Batch"** to store it for batch processing
+3. Repeat steps 1-2 for multiple articles
+4. Click **"📦 Export Batch"** when ready
+5. Choose CSV or PDF format
+6. All articles are exported to a single file
+7. Use **"🗑️ Clear Batch"** to start fresh
+
+**Benefits of Batch Analysis:**
+- Compare multiple articles at once
+- Generate consolidated reports
+- Save time with bulk exports
+- Perfect for research and analysis tasks
 
 ## 🧠 Sentiment Analysis
 
@@ -218,10 +251,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🔮 Future Enhancements
 
-- [ ] Export analysis results to PDF/CSV
+- [x] **Export analysis results to PDF/CSV** ✅ COMPLETED
+- [x] **Batch article analysis** ✅ COMPLETED
 - [ ] Advanced sentiment analysis with machine learning
 - [ ] Support for RSS feeds
-- [ ] Batch article analysis
 - [ ] Custom keyword tracking
 - [ ] Article comparison features
 
