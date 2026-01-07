@@ -163,8 +163,14 @@ class WebScraperGUI implements CommandLineRunner {
         scrapeButton.setFont(FONT_LABEL);
         scrapeButton.setBackground(PRIMARY_BLUE);
         scrapeButton.setForeground(Color.WHITE);
+        scrapeButton.setOpaque(true);
+        scrapeButton.setBorderPainted(true);
+        scrapeButton.setContentAreaFilled(true);
         scrapeButton.setFocusPainted(false);
-        scrapeButton.setBorder(BorderFactory.createEmptyBorder(10, 25, 10, 25));
+        scrapeButton.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(PRIMARY_BLUE.darker(), 2),
+            BorderFactory.createEmptyBorder(10, 25, 10, 25)
+        ));
         scrapeButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         JPanel inputPanel = new JPanel(new BorderLayout(10, 0));
@@ -284,8 +290,14 @@ class WebScraperGUI implements CommandLineRunner {
         analyzeButton.setFont(FONT_LABEL);
         analyzeButton.setBackground(PRIMARY_GREEN);
         analyzeButton.setForeground(Color.WHITE);
+        analyzeButton.setOpaque(true);
+        analyzeButton.setBorderPainted(true);
+        analyzeButton.setContentAreaFilled(true);
         analyzeButton.setFocusPainted(false);
-        analyzeButton.setBorder(BorderFactory.createEmptyBorder(10, 25, 10, 25));
+        analyzeButton.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(PRIMARY_GREEN.darker(), 2),
+            BorderFactory.createEmptyBorder(10, 25, 10, 25)
+        ));
         analyzeButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         JPanel inputPanel = new JPanel(new BorderLayout(10, 0));
@@ -366,8 +378,14 @@ class WebScraperGUI implements CommandLineRunner {
         exportCSVButton.setFont(FONT_SMALL);
         exportCSVButton.setBackground(new Color(52, 152, 219));
         exportCSVButton.setForeground(Color.WHITE);
+        exportCSVButton.setOpaque(true);
+        exportCSVButton.setBorderPainted(true);
+        exportCSVButton.setContentAreaFilled(true);
         exportCSVButton.setFocusPainted(false);
-        exportCSVButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        exportCSVButton.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(41, 128, 185), 1),
+            BorderFactory.createEmptyBorder(5, 10, 5, 10)
+        ));
         exportCSVButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         exportCSVButton.setAlignmentX(Component.LEFT_ALIGNMENT);
         exportCSVButton.addActionListener(e -> exportCurrentArticleToCSV());
@@ -376,8 +394,14 @@ class WebScraperGUI implements CommandLineRunner {
         exportPDFButton.setFont(FONT_SMALL);
         exportPDFButton.setBackground(new Color(231, 76, 60));
         exportPDFButton.setForeground(Color.WHITE);
+        exportPDFButton.setOpaque(true);
+        exportPDFButton.setBorderPainted(true);
+        exportPDFButton.setContentAreaFilled(true);
         exportPDFButton.setFocusPainted(false);
-        exportPDFButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        exportPDFButton.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(192, 57, 43), 1),
+            BorderFactory.createEmptyBorder(5, 10, 5, 10)
+        ));
         exportPDFButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         exportPDFButton.setAlignmentX(Component.LEFT_ALIGNMENT);
         exportPDFButton.addActionListener(e -> exportCurrentArticleToPDF());
@@ -403,8 +427,14 @@ class WebScraperGUI implements CommandLineRunner {
         addToBatchButton.setFont(FONT_SMALL);
         addToBatchButton.setBackground(PRIMARY_GREEN);
         addToBatchButton.setForeground(Color.WHITE);
+        addToBatchButton.setOpaque(true);
+        addToBatchButton.setBorderPainted(true);
+        addToBatchButton.setContentAreaFilled(true);
         addToBatchButton.setFocusPainted(false);
-        addToBatchButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        addToBatchButton.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(PRIMARY_GREEN.darker(), 1),
+            BorderFactory.createEmptyBorder(5, 10, 5, 10)
+        ));
         addToBatchButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         addToBatchButton.setAlignmentX(Component.LEFT_ALIGNMENT);
         addToBatchButton.addActionListener(e -> addToBatch());
@@ -413,8 +443,14 @@ class WebScraperGUI implements CommandLineRunner {
         exportBatchButton.setFont(FONT_SMALL);
         exportBatchButton.setBackground(new Color(155, 89, 182));
         exportBatchButton.setForeground(Color.WHITE);
+        exportBatchButton.setOpaque(true);
+        exportBatchButton.setBorderPainted(true);
+        exportBatchButton.setContentAreaFilled(true);
         exportBatchButton.setFocusPainted(false);
-        exportBatchButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        exportBatchButton.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(142, 68, 173), 1),
+            BorderFactory.createEmptyBorder(5, 10, 5, 10)
+        ));
         exportBatchButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         exportBatchButton.setAlignmentX(Component.LEFT_ALIGNMENT);
         exportBatchButton.addActionListener(e -> exportBatch());
@@ -423,8 +459,14 @@ class WebScraperGUI implements CommandLineRunner {
         clearBatchButton.setFont(FONT_SMALL);
         clearBatchButton.setBackground(TEXT_SECONDARY);
         clearBatchButton.setForeground(Color.WHITE);
+        clearBatchButton.setOpaque(true);
+        clearBatchButton.setBorderPainted(true);
+        clearBatchButton.setContentAreaFilled(true);
         clearBatchButton.setFocusPainted(false);
-        clearBatchButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        clearBatchButton.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(TEXT_SECONDARY.darker(), 1),
+            BorderFactory.createEmptyBorder(5, 10, 5, 10)
+        ));
         clearBatchButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         clearBatchButton.setAlignmentX(Component.LEFT_ALIGNMENT);
         clearBatchButton.addActionListener(e -> clearBatch());
