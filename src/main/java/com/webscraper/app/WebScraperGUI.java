@@ -19,9 +19,37 @@ import java.net.URL;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
+import static javax.swing.border.TitledBorder.LEFT;
+import static javax.swing.border.TitledBorder.TOP;
+
 @org.springframework.stereotype.Component
 class WebScraperGUI implements CommandLineRunner {
 
+    // UI Color Constants
+    private static final Color PRIMARY_BLUE = new Color(52, 152, 219);
+    private static final Color PRIMARY_GREEN = new Color(46, 204, 113);
+    private static final Color BACKGROUND_LIGHT = new Color(236, 240, 241);
+    private static final Color BACKGROUND_VERY_LIGHT = new Color(250, 250, 252);
+    private static final Color BORDER_COLOR = new Color(189, 195, 199);
+    private static final Color TEXT_PRIMARY = new Color(44, 62, 80);
+    private static final Color TEXT_SECONDARY = new Color(149, 165, 166);
+    private static final Color STATUS_BAR_BG = new Color(52, 73, 94);
+    private static final Color BUTTON_DISABLED = new Color(127, 140, 141);
+    private static final Color SENTIMENT_POSITIVE = new Color(39, 174, 96);
+    private static final Color SENTIMENT_NEGATIVE = new Color(231, 76, 60);
+    private static final Color SENTIMENT_NEUTRAL = new Color(52, 152, 219);
+    
+    // UI Font Constants
+    private static final Font FONT_TITLE = new Font(Font.SANS_SERIF, Font.BOLD, 14);
+    private static final Font FONT_LABEL = new Font(Font.SANS_SERIF, Font.BOLD, 13);
+    private static final Font FONT_TEXT = new Font(Font.SANS_SERIF, Font.PLAIN, 13);
+    private static final Font FONT_SMALL = new Font(Font.SANS_SERIF, Font.PLAIN, 12);
+    private static final Font FONT_ITALIC_SMALL = new Font(Font.SANS_SERIF, Font.ITALIC, 12);
+    
+    // Text Length Constants
+    private static final int MAX_HEADLINE_LENGTH = 60;
+    private static final int HEADLINE_TRUNCATE_LENGTH = 57;
+    
     private JFrame frame;
     private JTabbedPane tabbedPane;
 
@@ -69,7 +97,7 @@ class WebScraperGUI implements CommandLineRunner {
 
         // Create tabbed pane with custom styling
         tabbedPane = new JTabbedPane();
-        tabbedPane.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
+        tabbedPane.setFont(FONT_TITLE);
         tabbedPane.setBackground(new Color(245, 245, 250));
 
         // Tab 1: Link Scraper
@@ -84,12 +112,12 @@ class WebScraperGUI implements CommandLineRunner {
 
         // Status bar with better styling
         JPanel statusPanel = new JPanel(new BorderLayout());
-        statusPanel.setBackground(new Color(52, 73, 94));
+        statusPanel.setBackground(STATUS_BAR_BG);
         statusPanel.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
         
         JLabel statusBar = new JLabel("💡 Tab 1: Scrape latest news articles | Tab 2: Analyze articles with AI-powered sentiment analysis");
         statusBar.setForeground(Color.WHITE);
-        statusBar.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+        statusBar.setFont(FONT_SMALL);
         statusPanel.add(statusBar, BorderLayout.WEST);
         
         frame.add(statusPanel, BorderLayout.SOUTH);
@@ -104,33 +132,33 @@ class WebScraperGUI implements CommandLineRunner {
 
         // Top panel for URL input with modern styling
         JPanel topPanel = new JPanel(new BorderLayout(10, 10));
-        topPanel.setBackground(new Color(236, 240, 241));
+        topPanel.setBackground(BACKGROUND_LIGHT);
         topPanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createMatteBorder(0, 0, 2, 0, new Color(52, 152, 219)),
+            BorderFactory.createMatteBorder(0, 0, 2, 0, PRIMARY_BLUE),
             BorderFactory.createEmptyBorder(15, 20, 15, 20)
         ));
 
         JLabel urlLabel = new JLabel("🌐 Website URL:");
-        urlLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 13));
-        urlLabel.setForeground(new Color(44, 62, 80));
+        urlLabel.setFont(FONT_LABEL);
+        urlLabel.setForeground(TEXT_PRIMARY);
         
         urlField = new JTextField("https://www.bbc.com/");
-        urlField.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 13));
+        urlField.setFont(FONT_TEXT);
         urlField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(189, 195, 199), 1),
+            BorderFactory.createLineBorder(BORDER_COLOR, 1),
             BorderFactory.createEmptyBorder(8, 10, 8, 10)
         ));
         
         JButton scrapeButton = new JButton("🔍 Get Latest Articles");
-        scrapeButton.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 13));
-        scrapeButton.setBackground(new Color(52, 152, 219));
+        scrapeButton.setFont(FONT_LABEL);
+        scrapeButton.setBackground(PRIMARY_BLUE);
         scrapeButton.setForeground(Color.WHITE);
         scrapeButton.setFocusPainted(false);
         scrapeButton.setBorder(BorderFactory.createEmptyBorder(10, 25, 10, 25));
         scrapeButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         JPanel inputPanel = new JPanel(new BorderLayout(10, 0));
-        inputPanel.setBackground(new Color(236, 240, 241));
+        inputPanel.setBackground(BACKGROUND_LIGHT);
         inputPanel.add(urlLabel, BorderLayout.WEST);
         inputPanel.add(urlField, BorderLayout.CENTER);
         
@@ -142,20 +170,20 @@ class WebScraperGUI implements CommandLineRunner {
         linkList = new JList<>(listModel);
         linkList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         linkList.setCellRenderer(new LinkCellRenderer());
-        linkList.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
-        linkList.setBackground(new Color(250, 250, 252));
-        linkList.setSelectionBackground(new Color(52, 152, 219));
+        linkList.setFont(FONT_SMALL);
+        linkList.setBackground(BACKGROUND_VERY_LIGHT);
+        linkList.setSelectionBackground(PRIMARY_BLUE);
         linkList.setSelectionForeground(Color.WHITE);
 
         JScrollPane linkScrollPane = new JScrollPane(linkList);
         linkScrollPane.setPreferredSize(new Dimension(450, 600));
         linkScrollPane.setBorder(BorderFactory.createTitledBorder(
-            BorderFactory.createLineBorder(new Color(189, 195, 199), 1),
+            BorderFactory.createLineBorder(BORDER_COLOR, 1),
             "📑 Latest News Articles",
-            javax.swing.border.TitledBorder.LEFT,
-            javax.swing.border.TitledBorder.TOP,
-            new Font(Font.SANS_SERIF, Font.BOLD, 13),
-            new Color(44, 62, 80)
+            LEFT,
+            TOP,
+            FONT_LABEL,
+            TEXT_PRIMARY
         ));
 
         // Right panel for content display
@@ -167,19 +195,19 @@ class WebScraperGUI implements CommandLineRunner {
         contentArea.setWrapStyleWord(true);
         contentArea.setLineWrap(true);
         contentArea.setEditable(false);
-        contentArea.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 13));
+        contentArea.setFont(FONT_TEXT);
         contentArea.setBackground(Color.WHITE);
         contentArea.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         JScrollPane textScrollPane = new JScrollPane(contentArea);
         textScrollPane.setPreferredSize(new Dimension(700, 300));
         textScrollPane.setBorder(BorderFactory.createTitledBorder(
-            BorderFactory.createLineBorder(new Color(189, 195, 199), 1),
+            BorderFactory.createLineBorder(BORDER_COLOR, 1),
             "📄 Article Content",
-            javax.swing.border.TitledBorder.LEFT,
-            javax.swing.border.TitledBorder.TOP,
-            new Font(Font.SANS_SERIF, Font.BOLD, 13),
-            new Color(44, 62, 80)
+            LEFT,
+            TOP,
+            FONT_LABEL,
+            TEXT_PRIMARY
         ));
 
         // Images panel
@@ -189,12 +217,12 @@ class WebScraperGUI implements CommandLineRunner {
         imagePanel = new JScrollPane(imagesContainer);
         imagePanel.setPreferredSize(new Dimension(700, 300));
         imagePanel.setBorder(BorderFactory.createTitledBorder(
-            BorderFactory.createLineBorder(new Color(189, 195, 199), 1),
+            BorderFactory.createLineBorder(BORDER_COLOR, 1),
             "🖼️ Article Images",
-            javax.swing.border.TitledBorder.LEFT,
-            javax.swing.border.TitledBorder.TOP,
-            new Font(Font.SANS_SERIF, Font.BOLD, 13),
-            new Color(44, 62, 80)
+            LEFT,
+            TOP,
+            FONT_LABEL,
+            TEXT_PRIMARY
         ));
 
         JSplitPane rightSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, textScrollPane, imagePanel);
@@ -225,33 +253,33 @@ class WebScraperGUI implements CommandLineRunner {
 
         // Top panel for article URL input with modern styling
         JPanel topPanel = new JPanel(new BorderLayout(10, 10));
-        topPanel.setBackground(new Color(236, 240, 241));
+        topPanel.setBackground(BACKGROUND_LIGHT);
         topPanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createMatteBorder(0, 0, 2, 0, new Color(46, 204, 113)),
+            BorderFactory.createMatteBorder(0, 0, 2, 0, PRIMARY_GREEN),
             BorderFactory.createEmptyBorder(15, 20, 15, 20)
         ));
 
         JLabel articleLabel = new JLabel("🔗 Article URL:");
-        articleLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 13));
-        articleLabel.setForeground(new Color(44, 62, 80));
+        articleLabel.setFont(FONT_LABEL);
+        articleLabel.setForeground(TEXT_PRIMARY);
         
         articleUrlField = new JTextField("https://www.bbc.com/news/world-asia-india-12345678");
-        articleUrlField.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 13));
+        articleUrlField.setFont(FONT_TEXT);
         articleUrlField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(189, 195, 199), 1),
+            BorderFactory.createLineBorder(BORDER_COLOR, 1),
             BorderFactory.createEmptyBorder(8, 10, 8, 10)
         ));
         
         JButton analyzeButton = new JButton("🧠 Analyze with AI");
-        analyzeButton.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 13));
-        analyzeButton.setBackground(new Color(46, 204, 113));
+        analyzeButton.setFont(FONT_LABEL);
+        analyzeButton.setBackground(PRIMARY_GREEN);
         analyzeButton.setForeground(Color.WHITE);
         analyzeButton.setFocusPainted(false);
         analyzeButton.setBorder(BorderFactory.createEmptyBorder(10, 25, 10, 25));
         analyzeButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         JPanel inputPanel = new JPanel(new BorderLayout(10, 0));
-        inputPanel.setBackground(new Color(236, 240, 241));
+        inputPanel.setBackground(BACKGROUND_LIGHT);
         inputPanel.add(articleLabel, BorderLayout.WEST);
         inputPanel.add(articleUrlField, BorderLayout.CENTER);
         
@@ -261,15 +289,15 @@ class WebScraperGUI implements CommandLineRunner {
         // Article details panel with better styling
         JPanel detailsPanel = new JPanel();
         detailsPanel.setLayout(new BoxLayout(detailsPanel, BoxLayout.Y_AXIS));
-        detailsPanel.setBackground(new Color(250, 250, 252));
+        detailsPanel.setBackground(BACKGROUND_VERY_LIGHT);
         detailsPanel.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(new Color(189, 195, 199), 1),
+                BorderFactory.createLineBorder(BORDER_COLOR, 1),
                 "📋 Article Metadata",
-                javax.swing.border.TitledBorder.LEFT,
-                javax.swing.border.TitledBorder.TOP,
-                new Font(Font.SANS_SERIF, Font.BOLD, 13),
-                new Color(44, 62, 80)
+                LEFT,
+                TOP,
+                FONT_LABEL,
+                TEXT_PRIMARY
             ),
             BorderFactory.createEmptyBorder(15, 15, 15, 15)
         ));
@@ -279,19 +307,19 @@ class WebScraperGUI implements CommandLineRunner {
         metaIcon.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 24));
         
         headlineLabel = new JLabel("<html><b>Headline:</b> Ready to analyze</html>");
-        headlineLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
-        headlineLabel.setForeground(new Color(44, 62, 80));
+        headlineLabel.setFont(FONT_SMALL);
+        headlineLabel.setForeground(TEXT_PRIMARY);
 
         authorLabel = new JLabel("<html><b>Author:</b> Ready to analyze</html>");
-        authorLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
-        authorLabel.setForeground(new Color(44, 62, 80));
+        authorLabel.setFont(FONT_SMALL);
+        authorLabel.setForeground(TEXT_PRIMARY);
 
         dateLabel = new JLabel("<html><b>Published:</b> Ready to analyze</html>");
-        dateLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
-        dateLabel.setForeground(new Color(44, 62, 80));
+        dateLabel.setFont(FONT_SMALL);
+        dateLabel.setForeground(TEXT_PRIMARY);
 
         sentimentLabel = new JLabel("<html><b>Sentiment:</b> Ready to analyze</html>");
-        sentimentLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 13));
+        sentimentLabel.setFont(FONT_LABEL);
         sentimentLabel.setForeground(new Color(52, 73, 94));
 
         // Add separator
@@ -323,19 +351,19 @@ class WebScraperGUI implements CommandLineRunner {
         articleContentArea.setWrapStyleWord(true);
         articleContentArea.setLineWrap(true);
         articleContentArea.setEditable(false);
-        articleContentArea.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 13));
+        articleContentArea.setFont(FONT_TEXT);
         articleContentArea.setBackground(Color.WHITE);
         articleContentArea.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         JScrollPane articleTextScrollPane = new JScrollPane(articleContentArea);
         articleTextScrollPane.setPreferredSize(new Dimension(750, 400));
         articleTextScrollPane.setBorder(BorderFactory.createTitledBorder(
-            BorderFactory.createLineBorder(new Color(189, 195, 199), 1),
+            BorderFactory.createLineBorder(BORDER_COLOR, 1),
             "📝 Article Content & Analysis",
-            javax.swing.border.TitledBorder.LEFT,
-            javax.swing.border.TitledBorder.TOP,
-            new Font(Font.SANS_SERIF, Font.BOLD, 13),
-            new Color(44, 62, 80)
+            LEFT,
+            TOP,
+            FONT_LABEL,
+            TEXT_PRIMARY
         ));
 
         // Article images panel with better styling
@@ -345,12 +373,12 @@ class WebScraperGUI implements CommandLineRunner {
         articleImagePanel = new JScrollPane(articleImagesContainer);
         articleImagePanel.setPreferredSize(new Dimension(750, 200));
         articleImagePanel.setBorder(BorderFactory.createTitledBorder(
-            BorderFactory.createLineBorder(new Color(189, 195, 199), 1),
+            BorderFactory.createLineBorder(BORDER_COLOR, 1),
             "🖼️ Article Images",
-            javax.swing.border.TitledBorder.LEFT,
-            javax.swing.border.TitledBorder.TOP,
-            new Font(Font.SANS_SERIF, Font.BOLD, 13),
-            new Color(44, 62, 80)
+            LEFT,
+            TOP,
+            FONT_LABEL,
+            TEXT_PRIMARY
         ));
 
         // Create main content panel
@@ -404,7 +432,7 @@ class WebScraperGUI implements CommandLineRunner {
             JButton button = (JButton) e.getSource();
             button.setEnabled(false);
             button.setText("⏳ Loading...");
-            button.setBackground(new Color(127, 140, 141));
+            button.setBackground(BUTTON_DISABLED);
 
             // Run scraping in background thread
             currentWorker = new SwingWorker<>() {
@@ -428,7 +456,7 @@ class WebScraperGUI implements CommandLineRunner {
                     // Re-enable button with proper styling
                     button.setEnabled(true);
                     button.setText("🔍 Get Latest Articles");
-                    button.setBackground(new Color(52, 152, 219));
+                    button.setBackground(PRIMARY_BLUE);
 
                     try {
                         if (isCancelled()) {
@@ -494,7 +522,7 @@ class WebScraperGUI implements CommandLineRunner {
             JButton button = (JButton) e.getSource();
             button.setEnabled(false);
             button.setText("⏳ Analyzing...");
-            button.setBackground(new Color(127, 140, 141));
+            button.setBackground(BUTTON_DISABLED);
 
             // Run analysis in background thread
             currentWorker = new SwingWorker<DetailedArticle, String>() {
@@ -518,7 +546,7 @@ class WebScraperGUI implements CommandLineRunner {
                     // Re-enable button with proper styling
                     button.setEnabled(true);
                     button.setText("🧠 Analyze with AI");
-                    button.setBackground(new Color(46, 204, 113));
+                    button.setBackground(PRIMARY_GREEN);
 
                     try {
                         if (isCancelled()) {
@@ -550,9 +578,9 @@ class WebScraperGUI implements CommandLineRunner {
     private void displayDetailedArticle(DetailedArticle article) {
         // Display article metadata with better formatting
         String headlineText = article.getHeadline();
-        if (headlineText.length() > 60) {
+        if (headlineText.length() > MAX_HEADLINE_LENGTH) {
             headlineLabel.setText("<html><b>Headline:</b><br/>" + 
-                    headlineText.substring(0, 57) + "...</html>");
+                    headlineText.substring(0, HEADLINE_TRUNCATE_LENGTH) + "...</html>");
         } else {
             headlineLabel.setText("<html><b>Headline:</b><br/>" + headlineText + "</html>");
         }
@@ -568,13 +596,13 @@ class WebScraperGUI implements CommandLineRunner {
         
         if (sentiment.getLabel().equals("Positive")) {
             sentimentIcon = "😊";
-            sentimentColor = new Color(39, 174, 96);
+            sentimentColor = SENTIMENT_POSITIVE;
         } else if (sentiment.getLabel().equals("Negative")) {
             sentimentIcon = "😟";
-            sentimentColor = new Color(231, 76, 60);
+            sentimentColor = SENTIMENT_NEGATIVE;
         } else {
             sentimentIcon = "😐";
-            sentimentColor = new Color(52, 152, 219);
+            sentimentColor = SENTIMENT_NEUTRAL;
         }
         
         String sentimentText = "<html><b>Sentiment:</b> " + sentimentIcon + " " + 
@@ -632,14 +660,14 @@ class WebScraperGUI implements CommandLineRunner {
 
         if (imageUrls.isEmpty()) {
             JLabel noImagesLabel = new JLabel("📷 No images found in this article.");
-            noImagesLabel.setForeground(new Color(149, 165, 166));
-            noImagesLabel.setFont(new Font(Font.SANS_SERIF, Font.ITALIC, 12));
+            noImagesLabel.setForeground(TEXT_SECONDARY);
+            noImagesLabel.setFont(FONT_ITALIC_SMALL);
             noImagesLabel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
             articleImagesContainer.add(noImagesLabel);
         } else {
             JLabel loadingLabel = new JLabel("⏳ Loading " + imageUrls.size() + " images from article...");
-            loadingLabel.setForeground(new Color(52, 152, 219));
-            loadingLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+            loadingLabel.setForeground(PRIMARY_BLUE);
+            loadingLabel.setFont(FONT_SMALL);
             loadingLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
             articleImagesContainer.add(loadingLabel);
 
@@ -679,7 +707,7 @@ class WebScraperGUI implements CommandLineRunner {
                             JPanel imagePanel = new JPanel(new BorderLayout());
                             imagePanel.setBackground(Color.WHITE);
                             imagePanel.setBorder(BorderFactory.createCompoundBorder(
-                                BorderFactory.createLineBorder(new Color(189, 195, 199), 1),
+                                BorderFactory.createLineBorder(BORDER_COLOR, 1),
                                 BorderFactory.createEmptyBorder(5, 5, 5, 5)
                             ));
 
@@ -699,8 +727,8 @@ class WebScraperGUI implements CommandLineRunner {
                 protected void done() {
                     if (articleImagesContainer.getComponentCount() == 0) {
                         JLabel noImagesLabel = new JLabel("📷 Could not load any images from this article.");
-                        noImagesLabel.setForeground(new Color(149, 165, 166));
-                        noImagesLabel.setFont(new Font(Font.SANS_SERIF, Font.ITALIC, 12));
+                        noImagesLabel.setForeground(TEXT_SECONDARY);
+                        noImagesLabel.setFont(FONT_ITALIC_SMALL);
                         noImagesLabel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
                         articleImagesContainer.add(noImagesLabel);
                     }
@@ -784,14 +812,14 @@ class WebScraperGUI implements CommandLineRunner {
 
         if (content.getImageUrls().isEmpty()) {
             JLabel noImagesLabel = new JLabel("📷 No images found on this page.");
-            noImagesLabel.setForeground(new Color(149, 165, 166));
-            noImagesLabel.setFont(new Font(Font.SANS_SERIF, Font.ITALIC, 12));
+            noImagesLabel.setForeground(TEXT_SECONDARY);
+            noImagesLabel.setFont(FONT_ITALIC_SMALL);
             noImagesLabel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
             imagesContainer.add(noImagesLabel);
         } else {
             JLabel loadingLabel = new JLabel("⏳ Loading " + content.getImageUrls().size() + " images...");
-            loadingLabel.setForeground(new Color(52, 152, 219));
-            loadingLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+            loadingLabel.setForeground(PRIMARY_BLUE);
+            loadingLabel.setFont(FONT_SMALL);
             loadingLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
             imagesContainer.add(loadingLabel);
 
@@ -826,7 +854,7 @@ class WebScraperGUI implements CommandLineRunner {
                         JPanel imagePanel = new JPanel(new BorderLayout());
                         imagePanel.setBackground(Color.WHITE);
                         imagePanel.setBorder(BorderFactory.createCompoundBorder(
-                            BorderFactory.createLineBorder(new Color(189, 195, 199), 1),
+                            BorderFactory.createLineBorder(BORDER_COLOR, 1),
                             BorderFactory.createEmptyBorder(5, 5, 5, 5)
                         ));
                         
@@ -853,8 +881,8 @@ class WebScraperGUI implements CommandLineRunner {
 
                     if (imagesContainer.getComponentCount() == 0) {
                         JLabel noImagesLabel = new JLabel("📷 Could not load any images.");
-                        noImagesLabel.setForeground(new Color(149, 165, 166));
-                        noImagesLabel.setFont(new Font(Font.SANS_SERIF, Font.ITALIC, 12));
+                        noImagesLabel.setForeground(TEXT_SECONDARY);
+                        noImagesLabel.setFont(FONT_ITALIC_SMALL);
                         noImagesLabel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
                         imagesContainer.add(noImagesLabel);
                     }
@@ -991,14 +1019,19 @@ class LinkCellRenderer extends DefaultListCellRenderer {
             setToolTipText("<html><b>Click to view:</b><br/>" + link.getUrl() + "</html>");
             
             // Enhanced styling
+            Color borderColor = new Color(236, 240, 241);
+            Color evenBgColor = Color.WHITE;
+            Color oddBgColor = new Color(250, 250, 252);
+            Color textColor = new Color(44, 62, 80);
+            
             setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(236, 240, 241)),
+                BorderFactory.createMatteBorder(0, 0, 1, 0, borderColor),
                 BorderFactory.createEmptyBorder(8, 10, 8, 10)
             ));
             
             if (!isSelected) {
-                setBackground(index % 2 == 0 ? Color.WHITE : new Color(250, 250, 252));
-                setForeground(new Color(44, 62, 80));
+                setBackground(index % 2 == 0 ? evenBgColor : oddBgColor);
+                setForeground(textColor);
             }
         }
         return this;
