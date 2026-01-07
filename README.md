@@ -1,28 +1,42 @@
 # 🕷️ Web Scraper App - Spring Boot
 
-A powerful Spring Boot application with Swing GUI for web scraping news websites and analyzing articles with sentiment analysis.
+A powerful Spring Boot application with professional Swing GUI for web scraping news websites and analyzing articles with AI-powered sentiment analysis.
 
 ## 🚀 Features
 
-### Tab 1: Website Link Scraper
+### Tab 1: Website Link Scraper (📰)
 - **Smart Link Extraction**: Scrapes and lists latest news articles from websites
 - **Content Preview**: Click any link to view full article content
 - **Image Display**: Shows article images with proper loading and scaling
 - **News Focus**: Filters out navigation/footer links, shows only articles
 - **Performance Optimized**: Background loading prevents UI freezing
+- **Professional UI**: Modern blue color scheme with numbered article list
 
-### Tab 2: Article Analyzer
+### Tab 2: Article Analyzer (📊)
 - **Detailed Article Parsing**: Extract headline, author, publish date, and content
-- **Sentiment Analysis**: AI-powered emotion detection (Positive/Negative/Neutral)
+- **Sentiment Analysis**: AI-powered emotion detection (😊 Positive/😟 Negative/😐 Neutral)
 - **Word Count**: Automatic article statistics
 - **Image Extraction**: Finds and displays article images
 - **Keyword Analysis**: Shows positive/negative sentiment keywords
+- **Professional UI**: Modern green color scheme with structured report format
+
+## 🎨 User Interface
+
+The application features a **professional, industry-standard UI** with:
+- **Modern Color Scheme**: Blue and green themes with professional grays
+- **Intuitive Icons**: Emoji icons for better visual recognition
+- **Clear Feedback**: Loading states, success/error messages with helpful suggestions
+- **Responsive Layout**: Split panes with adjustable dividers
+- **Enhanced Typography**: Clear fonts and proper spacing throughout
+- **Hover Tooltips**: Full information on hover for truncated text
+- **Numbered Lists**: Easy-to-follow article enumeration
+- **Status Bar**: Real-time application status with tips
 
 ## 🛠️ Technology Stack
 
-- **Spring Boot 3.2.0** - Application framework
-- **Java Swing** - Desktop GUI
-- **JSoup 1.16.2** - HTML parsing and web scraping
+- **Spring Boot 3.4.8** - Application framework
+- **Java Swing** - Desktop GUI with custom styling
+- **JSoup 1.18.1** - HTML parsing and web scraping
 - **Apache HTTP Client** - HTTP connections
 - **Java 17** - Runtime environment
 
@@ -64,31 +78,40 @@ Run the `WebScraperApplication.java` main class
 
 ## 📖 How to Use
 
-### Website Link Scraper (Tab 1)
+### Website Link Scraper (Tab 1 - 📰)
 1. Enter a news website URL (e.g., `https://www.bbc.com/`)
-2. Click **"Get Links"** to scrape latest articles
-3. Select any article from the list to view content and images
-4. Images load automatically in the background
+2. Click **"🔍 Get Latest Articles"** button to scrape
+3. Browse the numbered list of articles on the left
+4. Select any article to view its content and images
+5. Images load automatically in the background
+6. Clear success/error messages guide you throughout
 
-### Article Analyzer (Tab 2)
-1. Paste a specific article URL
-2. Click **"Analyze Article"**
-3. View extracted details:
-    - **Headline** and **Author**
-    - **Publication Date**
-    - **Sentiment Analysis** with color coding
-    - **Full Content** with word count
-    - **Article Images**
-    - **Sentiment Keywords** (positive/negative words found)
+### Article Analyzer (Tab 2 - 📊)
+1. Paste a specific article URL in the input field
+2. Click **"🧠 Analyze with AI"** button
+3. View the comprehensive analysis in the left panel:
+   - **Headline** with hover for full text
+   - **Author** information
+   - **Publication Date**
+   - **Sentiment Analysis** with emoji indicator and color coding
+4. Read the structured report in the main area:
+   - Formatted headline and metadata
+   - Sentiment analysis with score
+   - Sentiment keywords (positive/negative)
+   - Full article content
+5. View extracted images below the content
+6. All processing happens in the background for smooth experience
 
 ## 🧠 Sentiment Analysis
 
-The built-in sentiment analyzer:
-- **Analyzes emotional tone** of articles
+The built-in sentiment analyzer provides:
+- **Analyzes emotional tone** of articles using word-based analysis
 - **Scores from -1.0 to +1.0** (negative to positive)
-- **Color coding**: 🟢 Positive, 🔴 Negative, 🔵 Neutral
-- **Keyword detection** shows sentiment-bearing words
-- **Statistical analysis** with word count metrics
+- **Color coding**: 🟢 Positive (Green), 🔴 Negative (Red), 🔵 Neutral (Blue)
+- **Emoji indicators**: 😊 for positive, 😟 for negative, 😐 for neutral
+- **Keyword detection** shows sentiment-bearing words found in the article
+- **Statistical analysis** with word count and sentiment score metrics
+- **Structured report format** with clear sections and formatting
 
 ## ⚙️ Configuration
 
@@ -138,18 +161,34 @@ The application handles common issues:
 
 ## 📊 Example Output
 
+### Article Analysis Report Format:
 ```
-=== ARTICLE ANALYSIS ===
+═══════════════════════════════════════════════════════════
+                    ARTICLE ANALYSIS REPORT
+═══════════════════════════════════════════════════════════
 
-HEADLINE: Breaking: Major Economic Policy Changes Announced
-AUTHOR: John Smith
-PUBLISHED: 2024-08-07 10:30:00
-SENTIMENT: Negative (-0.23)
-WORD COUNT: 847 words
+📰 HEADLINE
+─────────────────────────────────────────────────────────────
+Breaking: Major Economic Policy Changes Announced
 
-=== SENTIMENT KEYWORDS ===
-Positive: progress, improve, success
-Negative: crisis, problem, decline, concern
+✍️  METADATA
+─────────────────────────────────────────────────────────────
+Author:    John Smith
+Published: 2024-08-07 10:30:00
+Words:     847 words
+
+💭 SENTIMENT ANALYSIS
+─────────────────────────────────────────────────────────────
+Overall Sentiment: 😟 Negative (Score: -0.23)
+
+🔑 SENTIMENT KEYWORDS
+─────────────────────────────────────────────────────────────
+✅ Positive: progress, improve, success
+❌ Negative: crisis, problem, decline, concern
+
+📄 ARTICLE CONTENT
+═══════════════════════════════════════════════════════════
+[Full article text here...]
 ```
 
 ## 🤝 Contributing
