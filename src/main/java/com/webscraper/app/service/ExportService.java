@@ -29,14 +29,16 @@ public class ExportService {
                                 "Sentiment", "Sentiment Score", "Positive Keywords", "Negative Keywords"))) {
             
             csvPrinter.printRecord(
-                article.getHeadline(),
-                article.getAuthor(),
-                article.getPublishDate(),
+                article.getHeadline() != null ? article.getHeadline() : "",
+                article.getAuthor() != null ? article.getAuthor() : "Unknown",
+                article.getPublishDate() != null ? article.getPublishDate() : "Unknown",
                 article.getWordCount(),
-                article.getSentiment().getLabel(),
-                String.format("%.2f", article.getSentiment().getScore()),
-                String.join(", ", article.getSentiment().getPositiveWords()),
-                String.join(", ", article.getSentiment().getNegativeWords())
+                article.getSentiment() != null ? article.getSentiment().getLabel() : "Unknown",
+                article.getSentiment() != null ? String.format("%.2f", article.getSentiment().getScore()) : "0.00",
+                article.getSentiment() != null && article.getSentiment().getPositiveWords() != null ? 
+                    String.join(", ", article.getSentiment().getPositiveWords()) : "",
+                article.getSentiment() != null && article.getSentiment().getNegativeWords() != null ?
+                    String.join(", ", article.getSentiment().getNegativeWords()) : ""
             );
         }
     }
@@ -52,14 +54,16 @@ public class ExportService {
             
             for (DetailedArticle article : articles) {
                 csvPrinter.printRecord(
-                    article.getHeadline(),
-                    article.getAuthor(),
-                    article.getPublishDate(),
+                    article.getHeadline() != null ? article.getHeadline() : "",
+                    article.getAuthor() != null ? article.getAuthor() : "Unknown",
+                    article.getPublishDate() != null ? article.getPublishDate() : "Unknown",
                     article.getWordCount(),
-                    article.getSentiment().getLabel(),
-                    String.format("%.2f", article.getSentiment().getScore()),
-                    String.join(", ", article.getSentiment().getPositiveWords()),
-                    String.join(", ", article.getSentiment().getNegativeWords())
+                    article.getSentiment() != null ? article.getSentiment().getLabel() : "Unknown",
+                    article.getSentiment() != null ? String.format("%.2f", article.getSentiment().getScore()) : "0.00",
+                    article.getSentiment() != null && article.getSentiment().getPositiveWords() != null ?
+                        String.join(", ", article.getSentiment().getPositiveWords()) : "",
+                    article.getSentiment() != null && article.getSentiment().getNegativeWords() != null ?
+                        String.join(", ", article.getSentiment().getNegativeWords()) : ""
                 );
             }
         }
@@ -83,13 +87,13 @@ public class ExportService {
             
             // Headline
             document.add(new Paragraph(new Text("Headline: ").setBold())
-                    .add(article.getHeadline()));
+                    .add(article.getHeadline() != null ? article.getHeadline() : "No headline"));
             
             // Metadata
             document.add(new Paragraph(new Text("Author: ").setBold())
-                    .add(article.getAuthor()));
+                    .add(article.getAuthor() != null ? article.getAuthor() : "Unknown"));
             document.add(new Paragraph(new Text("Published: ").setBold())
-                    .add(article.getPublishDate()));
+                    .add(article.getPublishDate() != null ? article.getPublishDate() : "Unknown"));
             document.add(new Paragraph(new Text("Word Count: ").setBold())
                     .add(String.valueOf(article.getWordCount())));
             
@@ -97,25 +101,28 @@ public class ExportService {
             document.add(new Paragraph("\nSentiment Analysis")
                     .setFontSize(16)
                     .setBold());
-            document.add(new Paragraph(new Text("Overall Sentiment: ").setBold())
-                    .add(article.getSentiment().getLabel() + " (" + 
-                         String.format("%.2f", article.getSentiment().getScore()) + ")"));
             
-            if (!article.getSentiment().getPositiveWords().isEmpty()) {
-                document.add(new Paragraph(new Text("Positive Keywords: ").setBold())
-                        .add(String.join(", ", article.getSentiment().getPositiveWords())));
-            }
-            
-            if (!article.getSentiment().getNegativeWords().isEmpty()) {
-                document.add(new Paragraph(new Text("Negative Keywords: ").setBold())
-                        .add(String.join(", ", article.getSentiment().getNegativeWords())));
+            if (article.getSentiment() != null) {
+                document.add(new Paragraph(new Text("Overall Sentiment: ").setBold())
+                        .add(article.getSentiment().getLabel() + " (" + 
+                             String.format("%.2f", article.getSentiment().getScore()) + ")"));
+                
+                if (article.getSentiment().getPositiveWords() != null && !article.getSentiment().getPositiveWords().isEmpty()) {
+                    document.add(new Paragraph(new Text("Positive Keywords: ").setBold())
+                            .add(String.join(", ", article.getSentiment().getPositiveWords())));
+                }
+                
+                if (article.getSentiment().getNegativeWords() != null && !article.getSentiment().getNegativeWords().isEmpty()) {
+                    document.add(new Paragraph(new Text("Negative Keywords: ").setBold())
+                            .add(String.join(", ", article.getSentiment().getNegativeWords())));
+                }
             }
             
             // Content
             document.add(new Paragraph("\nArticle Content")
                     .setFontSize(16)
                     .setBold());
-            document.add(new Paragraph(article.getContent()));
+            document.add(new Paragraph(article.getContent() != null ? article.getContent() : "No content available"));
         }
     }
 
@@ -153,23 +160,29 @@ public class ExportService {
                 
                 // Headline
                 document.add(new Paragraph(new Text("Headline: ").setBold())
-                        .add(article.getHeadline()));
+                        .add(article.getHeadline() != null ? article.getHeadline() : "No headline"));
                 
                 // Metadata
                 document.add(new Paragraph(new Text("Author: ").setBold())
-                        .add(article.getAuthor()));
+                        .add(article.getAuthor() != null ? article.getAuthor() : "Unknown"));
                 document.add(new Paragraph(new Text("Published: ").setBold())
-                        .add(article.getPublishDate()));
-                document.add(new Paragraph(new Text("Sentiment: ").setBold())
-                        .add(article.getSentiment().getLabel() + " (" + 
-                             String.format("%.2f", article.getSentiment().getScore()) + ")"));
+                        .add(article.getPublishDate() != null ? article.getPublishDate() : "Unknown"));
                 
-                // Keywords
-                if (!article.getSentiment().getPositiveWords().isEmpty() || 
-                    !article.getSentiment().getNegativeWords().isEmpty()) {
-                    document.add(new Paragraph(new Text("Keywords: ").setBold())
-                            .add("Positive: " + String.join(", ", article.getSentiment().getPositiveWords()) +
-                                 " | Negative: " + String.join(", ", article.getSentiment().getNegativeWords())));
+                if (article.getSentiment() != null) {
+                    document.add(new Paragraph(new Text("Sentiment: ").setBold())
+                            .add(article.getSentiment().getLabel() + " (" + 
+                                 String.format("%.2f", article.getSentiment().getScore()) + ")"));
+                    
+                    // Keywords
+                    boolean hasPositive = article.getSentiment().getPositiveWords() != null && !article.getSentiment().getPositiveWords().isEmpty();
+                    boolean hasNegative = article.getSentiment().getNegativeWords() != null && !article.getSentiment().getNegativeWords().isEmpty();
+                    
+                    if (hasPositive || hasNegative) {
+                        String positiveWords = hasPositive ? String.join(", ", article.getSentiment().getPositiveWords()) : "None";
+                        String negativeWords = hasNegative ? String.join(", ", article.getSentiment().getNegativeWords()) : "None";
+                        document.add(new Paragraph(new Text("Keywords: ").setBold())
+                                .add("Positive: " + positiveWords + " | Negative: " + negativeWords));
+                    }
                 }
                 
                 document.add(new Paragraph("\n"));

@@ -1175,6 +1175,23 @@ class WebScraperGUI implements CommandLineRunner {
             return;
         }
 
+        // Check for duplicate based on headline (simple duplicate detection)
+        boolean isDuplicate = batchArticles.stream()
+            .anyMatch(article -> article.getHeadline() != null && 
+                     article.getHeadline().equals(currentArticle.getHeadline()));
+
+        if (isDuplicate) {
+            int choice = JOptionPane.showConfirmDialog(frame,
+                "An article with this headline is already in the batch.\nAdd anyway?",
+                "Possible Duplicate",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE);
+            
+            if (choice != JOptionPane.YES_OPTION) {
+                return;
+            }
+        }
+
         batchArticles.add(currentArticle);
         JOptionPane.showMessageDialog(frame,
             "Article added to batch!\n\nTotal articles in batch: " + batchArticles.size(),
